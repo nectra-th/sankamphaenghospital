@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>รายละเอียดทรัพย์สิน - โรงพยาบาลสันกำแพง</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">🏥</div>
+      <div class="sidebar-title">โรงพยาบาลสันกำแพง<small>Equipment Management System</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">เมนูหลัก</div>
+        <a href="../index.html" class="nav-item"><i class="fas fa-chart-pie nav-icon"></i> แดชบอร์ด</a>
+        <a href="assets.html" class="nav-item active"><i class="fas fa-laptop-medical nav-icon"></i> ทะเบียนทรัพย์สิน</a>
+        <a href="maintenance.html" class="nav-item"><i class="fas fa-tools nav-icon"></i> ระบบซ่อมบำรุง <span class="nav-badge">4</span></a>
+        <a href="stock.html" class="nav-item"><i class="fas fa-boxes-stacked nav-icon"></i> คลังพัสดุ</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">เครื่องมือ</div>
+        <a href="stock-receive.html" class="nav-item"><i class="fas fa-barcode nav-icon"></i> Scan รับสินค้า</a>
+        <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar nav-icon"></i> รายงาน</a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">👤</div>
+        <div><div class="user-name">Admin IT</div><div class="user-role">ผู้ดูแลระบบ</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="header">
+      <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <div class="page-title-area">
+        <h1 id="pageTitle">รายละเอียดทรัพย์สิน</h1>
+        <div class="breadcrumb">
+          <a href="../index.html"><i class="fas fa-home"></i> หน้าหลัก</a>
+          <i class="fas fa-chevron-right" style="font-size:10px;"></i>
+          <a href="assets.html">ทะเบียนทรัพย์สิน</a>
+          <i class="fas fa-chevron-right" style="font-size:10px;"></i>
+          <span id="breadcrumbId">-</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="window.print()"><i class="fas fa-print"></i> พิมพ์ Tag</button>
+        <button class="btn btn-primary btn-sm"><i class="fas fa-edit"></i> แก้ไข</button>
+      </div>
+    </header>
+
+    <div class="page-container fade-in" id="detailContent">
+      <!-- Will be populated by JS -->
+    </div>
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="bottom-nav-items">
+      <a href="../index.html" class="bottom-nav-item"><i class="fas fa-chart-pie"></i><span>แดชบอร์ด</span></a>
+      <a href="assets.html" class="bottom-nav-item active"><i class="fas fa-laptop-medical"></i><span>ทรัพย์สิน</span></a>
+      <a href="maintenance.html" class="bottom-nav-item"><i class="fas fa-tools"></i><span>ซ่อมบำรุง</span></a>
+      <a href="stock.html" class="bottom-nav-item"><i class="fas fa-boxes-stacked"></i><span>คลังพัสดุ</span></a>
+      <a href="reports.html" class="bottom-nav-item"><i class="fas fa-chart-bar"></i><span>รายงาน</span></a>
+    </div>
+  </nav>
+
+  <script src="../js/data.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('active');
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const assetId = params.get('id') || 'SKH-COM-001';
+    const asset = getAssetById(assetId);
+
+    if (!asset) {
+      document.getElementById('detailContent').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>ไม่พบข้อมูลทรัพย์สิน</h3><p>รหัส: ' + assetId + '</p><a href="assets.html" class="btn btn-primary" style="margin-top:16px;">กลับหน้าทะเบียน</a></div>';
+    } else {
+      const cat = getCategoryById(asset.category);
+      const dept = getDepartmentById(asset.department);
+      const status = getStatusById(asset.status);
+      const relatedWOs = WORK_ORDERS.filter(wo => wo.assetId === asset.id);
+      const warrantyExpired = asset.warrantyEnd && new Date(asset.warrantyEnd) < new Date();
+
+      document.getElementById('pageTitle').textContent = asset.id;
+      document.getElementById('breadcrumbId').textContent = asset.id;
+
+      document.getElementById('detailContent').innerHTML = `
+        <!-- Header -->
+        <div class="detail-header">
+          <div class="detail-icon" style="background:${cat.color}15;color:${cat.color};">
+            <i class="fas ${cat.icon}"></i>
+          </div>
+          <div style="flex:1;">
+            <div class="detail-title">
+              <h1>${asset.name}</h1>
+            </div>
+            <div class="detail-subtitle" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:8px;">
+              <span class="badge" style="background:${status.bg};color:${status.color};font-size:13px;padding:6px 14px;">
+                <span class="badge-dot" style="background:${status.color};"></span> ${status.name}
+              </span>
+              <span style="color:var(--gray-400);">|</span>
+              <span><i class="fas fa-building" style="margin-right:4px;color:var(--gray-400);"></i> ${dept.name}</span>
+              <span style="color:var(--gray-400);">|</span>
+              <span><i class="fas fa-map-marker-alt" style="margin-right:4px;color:var(--gray-400);"></i> ${asset.location}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:24px;">
+          <!-- Left: Info -->
+          <div>
+            <!-- Basic Info -->
+            <div class="card" style="margin-bottom:20px;">
+              <div class="card-header"><h2><i class="fas fa-info-circle" style="color:var(--primary);margin-right:8px;"></i> ข้อมูลพื้นฐาน</h2></div>
+              <div class="card-body">
+                <div class="info-grid">
+                  <div class="info-item"><label>รหัสทรัพย์สิน</label><span>${asset.id}</span></div>
+                  <div class="info-item"><label>ยี่ห้อ</label><span>${asset.brand}</span></div>
+                  <div class="info-item"><label>รุ่น</label><span>${asset.model}</span></div>
+                  <div class="info-item"><label>Serial Number</label><span>${asset.serial}</span></div>
+                  <div class="info-item"><label>ผู้จำหน่าย</label><span>${asset.supplier}</span></div>
+                  <div class="info-item"><label>ราคาจัดซื้อ</label><span style="color:var(--primary);font-size:18px;">${formatCurrency(asset.price)} บาท</span></div>
+                  <div class="info-item"><label>วันที่จัดซื้อ</label><span>${formatDate(asset.purchaseDate)}</span></div>
+                  <div class="info-item">
+                    <label>สิ้นสุดประกัน</label>
+                    <span style="color:${warrantyExpired ? 'var(--danger)' : 'var(--success)'};">
+                      ${formatDate(asset.warrantyEnd)}
+                      ${warrantyExpired ? ' <i class="fas fa-exclamation-triangle"></i> หมดประกัน' : ' <i class="fas fa-shield-halved"></i> มีประกัน'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Specs -->
+            <div class="card" style="margin-bottom:20px;">
+              <div class="card-header"><h2><i class="fas fa-microchip" style="color:var(--secondary);margin-right:8px;"></i> สเปค/รายละเอียด</h2></div>
+              <div class="card-body">
+                <p style="font-size:14px;line-height:1.8;color:var(--gray-600);">${asset.specs}</p>
+              </div>
+            </div>
+
+            <!-- Maintenance Info -->
+            <div class="card" style="margin-bottom:20px;">
+              <div class="card-header"><h2><i class="fas fa-calendar-check" style="color:var(--success);margin-right:8px;"></i> ข้อมูลซ่อมบำรุง</h2></div>
+              <div class="card-body">
+                <div class="info-grid" style="grid-template-columns:1fr 1fr;">
+                  <div class="info-item"><label>ซ่อมบำรุงครั้งล่าสุด</label><span>${formatDate(asset.lastMaintenance)}</span></div>
+                  <div class="info-item"><label>กำหนดซ่อมครั้งถัดไป</label><span style="color:var(--warning);">${formatDate(asset.nextMaintenance)}</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Related Work Orders -->
+            ${relatedWOs.length > 0 ? `
+            <div class="card">
+              <div class="card-header">
+                <h2><i class="fas fa-clipboard-list" style="color:var(--warning);margin-right:8px;"></i> ประวัติงานซ่อม</h2>
+              </div>
+              <div class="card-body" style="padding:0;">
+                <div class="table-container">
+                  <table class="data-table">
+                    <thead>
+                      <tr><th>เลขที่</th><th>รายการ</th><th>สถานะ</th><th>วันที่</th></tr>
+                    </thead>
+                    <tbody>
+                      ${relatedWOs.map(wo => {
+                        const woStatus = getMaintenanceStatusById(wo.status);
+                        return `
+                          <tr onclick="location.href='maintenance-detail.html?id=${wo.id}'">
+                            <td><strong>${wo.id}</strong></td>
+                            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${wo.title}</td>
+                            <td><span class="badge" style="background:${woStatus.bg};color:${woStatus.color};"><i class="fas ${woStatus.icon}" style="margin-right:4px;font-size:10px;"></i>${woStatus.name}</span></td>
+                            <td>${formatDate(wo.reportedDate)}</td>
+                          </tr>
+                        `;
+                      }).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            ` : ''}
+          </div>
+
+          <!-- Right: QR & Tag -->
+          <div>
+            <!-- QR Code -->
+            <div class="card" style="margin-bottom:20px;">
+              <div class="card-header"><h2><i class="fas fa-qrcode" style="color:var(--gray-700);margin-right:8px;"></i> QR Code</h2></div>
+              <div class="card-body qr-section">
+                <div class="qr-code-wrapper">
+                  <div id="qrCode"></div>
+                </div>
+                <p style="margin-top:16px;font-size:13px;color:var(--gray-500);">Scan เพื่อดูข้อมูลทรัพย์สิน</p>
+                <div style="margin-top:12px;">
+                  <button class="btn btn-sm btn-secondary"><i class="fas fa-download"></i> ดาวน์โหลด QR</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Barcode -->
+            <div class="card" style="margin-bottom:20px;">
+              <div class="card-header"><h2><i class="fas fa-barcode" style="color:var(--gray-700);margin-right:8px;"></i> Barcode</h2></div>
+              <div class="card-body" style="text-align:center;padding:24px;">
+                <svg id="barcodeImg"></svg>
+              </div>
+            </div>
+
+            <!-- Print Tag Preview -->
+            <div class="card">
+              <div class="card-header">
+                <h2><i class="fas fa-tag" style="color:var(--info);margin-right:8px;"></i> ตัวอย่าง Tag สติกเกอร์</h2>
+              </div>
+              <div class="card-body" style="display:flex;justify-content:center;padding:24px;">
+                <div class="print-tag" style="width:70mm;padding:16px;">
+                  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">
+                    <span style="font-size:16px;">🏥</span>
+                    <div style="text-align:left;">
+                      <div style="font-size:9px;font-weight:700;">โรงพยาบาลสันกำแพง</div>
+                      <div style="font-size:7px;color:var(--gray-400);">Sankamphaeng Hospital</div>
+                    </div>
+                  </div>
+                  <div style="border-top:1px dashed var(--gray-300);padding-top:10px;margin-top:4px;">
+                    <div id="tagQR" style="margin:0 auto 8px;"></div>
+                    <svg id="tagBarcode"></svg>
+                  </div>
+                  <div class="tag-id">${asset.id}</div>
+                  <div class="tag-name">${asset.name}</div>
+                  <div style="font-size:8px;color:var(--gray-400);margin-top:6px;">${dept.name} · ${asset.location}</div>
+                </div>
+              </div>
+              <div class="card-footer">
+                <button class="btn btn-primary btn-sm" onclick="window.print()"><i class="fas fa-print"></i> พิมพ์ Tag</button>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card" style="margin-top:20px;">
+              <div class="card-header"><h2><i class="fas fa-bolt" style="color:var(--warning);margin-right:8px;"></i> ดำเนินการ</h2></div>
+              <div class="card-body" style="display:flex;flex-direction:column;gap:8px;">
+                <a href="maintenance.html" class="btn btn-warning" style="justify-content:flex-start;"><i class="fas fa-tools"></i> แจ้งซ่อม</a>
+                <button class="btn btn-secondary" style="justify-content:flex-start;"><i class="fas fa-exchange-alt"></i> ย้ายแผนก</button>
+                <button class="btn btn-secondary" style="justify-content:flex-start;"><i class="fas fa-history"></i> ดูประวัติทั้งหมด</button>
+                <button class="btn btn-outline" style="justify-content:flex-start;color:var(--danger);border-color:var(--danger);"><i class="fas fa-trash-alt"></i> จำหน่ายทรัพย์สิน</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Generate QR Code
+      const qr = qrcode(0, 'M');
+      qr.addData(`https://skh-equip.example.com/asset/${asset.id}`);
+      qr.make();
+      document.getElementById('qrCode').innerHTML = qr.createSvgTag(5, 0);
+
+      // Tag QR
+      const tagQr = qrcode(0, 'M');
+      tagQr.addData(`https://skh-equip.example.com/asset/${asset.id}`);
+      tagQr.make();
+      document.getElementById('tagQR').innerHTML = tagQr.createSvgTag(2.5, 0);
+
+      // Generate Barcode
+      JsBarcode('#barcodeImg', asset.id, {
+        format: 'CODE128',
+        width: 2,
+        height: 50,
+        displayValue: true,
+        fontSize: 14,
+        font: 'Noto Sans Thai',
+        margin: 10,
+      });
+
+      JsBarcode('#tagBarcode', asset.id, {
+        format: 'CODE128',
+        width: 1.2,
+        height: 30,
+        displayValue: false,
+        margin: 0,
+      });
+    }
+  </script>
+</body>
+</html>

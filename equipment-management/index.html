@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจัดการอุปกรณ์ - โรงพยาบาลสันกำแพง</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Sidebar Overlay (Mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">🏥</div>
+      <div class="sidebar-title">
+        โรงพยาบาลสันกำแพง
+        <small>Equipment Management System</small>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">เมนูหลัก</div>
+        <a href="index.html" class="nav-item active">
+          <i class="fas fa-chart-pie nav-icon"></i> แดชบอร์ด
+        </a>
+        <a href="pages/assets.html" class="nav-item">
+          <i class="fas fa-laptop-medical nav-icon"></i> ทะเบียนทรัพย์สิน
+        </a>
+        <a href="pages/maintenance.html" class="nav-item">
+          <i class="fas fa-tools nav-icon"></i> ระบบซ่อมบำรุง
+          <span class="nav-badge">4</span>
+        </a>
+        <a href="pages/stock.html" class="nav-item">
+          <i class="fas fa-boxes-stacked nav-icon"></i> คลังพัสดุ
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">เครื่องมือ</div>
+        <a href="pages/stock-receive.html" class="nav-item">
+          <i class="fas fa-barcode nav-icon"></i> Scan รับสินค้า
+        </a>
+        <a href="pages/reports.html" class="nav-item">
+          <i class="fas fa-chart-bar nav-icon"></i> รายงาน
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">👤</div>
+        <div>
+          <div class="user-name">Admin IT</div>
+          <div class="user-role">ผู้ดูแลระบบ</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="header">
+      <button class="menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="page-title-area">
+        <h1>แดชบอร์ด</h1>
+        <div class="breadcrumb">
+          <i class="fas fa-home"></i> หน้าหลัก
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="ค้นหาอุปกรณ์, ใบงาน...">
+        </div>
+        <button class="header-btn">
+          <i class="fas fa-bell"></i>
+          <span class="notification-dot"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="page-container fade-in">
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #DBEAFE; color: #3B82F6;">
+            <i class="fas fa-laptop-medical"></i>
+          </div>
+          <div class="stat-info">
+            <h3>20</h3>
+            <p>ทรัพย์สินทั้งหมด</p>
+            <span class="stat-change up"><i class="fas fa-arrow-up"></i> +2 เดือนนี้</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #D1FAE5; color: #10B981;">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-info">
+            <h3>16</h3>
+            <p>ใช้งานปกติ</p>
+            <span class="stat-change up"><i class="fas fa-arrow-up"></i> 80%</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #FEF3C7; color: #F59E0B;">
+            <i class="fas fa-wrench"></i>
+          </div>
+          <div class="stat-info">
+            <h3>4</h3>
+            <p>งานซ่อมค้าง</p>
+            <span class="stat-change down"><i class="fas fa-arrow-up"></i> +1 สัปดาห์นี้</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #FEE2E2; color: #EF4444;">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="stat-info">
+            <h3>3</h3>
+            <p>พัสดุใกล้หมด</p>
+            <span class="stat-change down"><i class="fas fa-arrow-down"></i> ต้องสั่งซื้อ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid-2" style="margin-bottom: 24px;">
+        <!-- Asset by Category Chart -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-chart-pie" style="color: var(--primary); margin-right: 8px;"></i> สัดส่วนทรัพย์สินตามประเภท</h2>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="categoryChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Maintenance Status Chart -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-chart-bar" style="color: var(--secondary); margin-right: 8px;"></i> สถานะงานซ่อมบำรุง</h2>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="maintenanceChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity & Pending Tasks -->
+      <div class="grid-2">
+        <!-- Recent Maintenance -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-clock-rotate-left" style="color: var(--warning); margin-right: 8px;"></i> งานซ่อมล่าสุด</h2>
+            <a href="pages/maintenance.html" class="btn btn-sm btn-secondary">ดูทั้งหมด</a>
+          </div>
+          <div class="card-body" style="padding: 12px 20px;">
+            <div id="recentWorkOrders"></div>
+          </div>
+        </div>
+
+        <!-- Low Stock Alert -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-triangle-exclamation" style="color: var(--danger); margin-right: 8px;"></i> พัสดุใกล้หมด</h2>
+            <a href="pages/stock.html" class="btn btn-sm btn-secondary">ดูทั้งหมด</a>
+          </div>
+          <div class="card-body" style="padding: 0;">
+            <div class="table-container">
+              <table class="data-table" id="lowStockTable">
+                <thead>
+                  <tr>
+                    <th>รายการ</th>
+                    <th>คงเหลือ</th>
+                    <th>ขั้นต่ำ</th>
+                    <th>สถานะ</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Asset by Department -->
+      <div class="card" style="margin-top: 24px;">
+        <div class="card-header">
+          <h2><i class="fas fa-building" style="color: var(--info); margin-right: 8px;"></i> ทรัพย์สินตามแผนก</h2>
+          <a href="pages/assets.html" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i> เพิ่มทรัพย์สิน</a>
+        </div>
+        <div class="card-body">
+          <div class="chart-container" style="height: 320px;">
+            <canvas id="departmentChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation (Mobile) -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-items">
+      <a href="index.html" class="bottom-nav-item active">
+        <i class="fas fa-chart-pie"></i>
+        <span>แดชบอร์ด</span>
+      </a>
+      <a href="pages/assets.html" class="bottom-nav-item">
+        <i class="fas fa-laptop-medical"></i>
+        <span>ทรัพย์สิน</span>
+      </a>
+      <a href="pages/maintenance.html" class="bottom-nav-item">
+        <i class="fas fa-tools"></i>
+        <span>ซ่อมบำรุง</span>
+      </a>
+      <a href="pages/stock.html" class="bottom-nav-item">
+        <i class="fas fa-boxes-stacked"></i>
+        <span>คลังพัสดุ</span>
+      </a>
+      <a href="pages/reports.html" class="bottom-nav-item">
+        <i class="fas fa-chart-bar"></i>
+        <span>รายงาน</span>
+      </a>
+    </div>
+  </nav>
+
+  <script src="js/data.js"></script>
+  <script>
+    // Sidebar toggle
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('active');
+    }
+
+    // === Charts ===
+    // Category Pie Chart
+    const categoryData = {};
+    ASSETS.forEach(a => {
+      const cat = getCategoryById(a.category);
+      categoryData[cat.name] = (categoryData[cat.name] || 0) + 1;
+    });
+
+    new Chart(document.getElementById('categoryChart'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(categoryData),
+        datasets: [{
+          data: Object.values(categoryData),
+          backgroundColor: ['#3B82F6','#8B5CF6','#6366F1','#EF4444','#F59E0B','#10B981','#EC4899','#14B8A6','#F97316','#06B6D4','#78716C'],
+          borderWidth: 0,
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { font: { family: "'Noto Sans Thai'", size: 12 }, padding: 12, usePointStyle: true, pointStyleWidth: 10 }
+          }
+        },
+        cutout: '65%',
+      }
+    });
+
+    // Maintenance Bar Chart
+    const mStatusCount = {};
+    MAINTENANCE_STATUSES.forEach(s => mStatusCount[s.name] = 0);
+    WORK_ORDERS.forEach(wo => {
+      const s = getMaintenanceStatusById(wo.status);
+      mStatusCount[s.name]++;
+    });
+
+    new Chart(document.getElementById('maintenanceChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(mStatusCount),
+        datasets: [{
+          data: Object.values(mStatusCount),
+          backgroundColor: MAINTENANCE_STATUSES.map(s => s.color + '20'),
+          borderColor: MAINTENANCE_STATUSES.map(s => s.color),
+          borderWidth: 2,
+          borderRadius: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { stepSize: 1, font: { family: "'Noto Sans Thai'" } }, grid: { color: '#F1F5F9' } },
+          x: { ticks: { font: { family: "'Noto Sans Thai'", size: 11 } }, grid: { display: false } }
+        }
+      }
+    });
+
+    // Department Chart
+    const deptData = {};
+    DEPARTMENTS.forEach(d => deptData[d.name] = 0);
+    ASSETS.forEach(a => {
+      const dept = getDepartmentById(a.department);
+      if (dept) deptData[dept.name]++;
+    });
+    const filteredDept = Object.entries(deptData).filter(([,v]) => v > 0);
+
+    new Chart(document.getElementById('departmentChart'), {
+      type: 'bar',
+      data: {
+        labels: filteredDept.map(([k]) => k),
+        datasets: [{
+          label: 'จำนวนทรัพย์สิน',
+          data: filteredDept.map(([,v]) => v),
+          backgroundColor: 'rgba(14,165,233,0.15)',
+          borderColor: '#0EA5E9',
+          borderWidth: 2,
+          borderRadius: 8,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, ticks: { stepSize: 1, font: { family: "'Noto Sans Thai'" } }, grid: { color: '#F1F5F9' } },
+          y: { ticks: { font: { family: "'Noto Sans Thai'", size: 12 } }, grid: { display: false } }
+        }
+      }
+    });
+
+    // === Recent Work Orders ===
+    const recentWO = WORK_ORDERS.filter(wo => wo.status !== 'completed').slice(0, 4);
+    const woContainer = document.getElementById('recentWorkOrders');
+    recentWO.forEach(wo => {
+      const status = getMaintenanceStatusById(wo.status);
+      const priority = getPriorityInfo(wo.priority);
+      const asset = getAssetById(wo.assetId);
+      woContainer.innerHTML += `
+        <a href="pages/maintenance-detail.html?id=${wo.id}" style="display:flex; align-items:flex-start; gap:12px; padding:12px 0; border-bottom:1px solid var(--gray-100); text-decoration:none; color:inherit;">
+          <div style="width:40px;height:40px;border-radius:10px;background:${status.bg};color:${status.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fas ${status.icon}"></i>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${wo.title}</div>
+            <div style="font-size:12px;color:var(--gray-500);">${wo.id} · ${asset ? asset.name.substring(0, 30) : ''}</div>
+          </div>
+          <span class="badge" style="background:${priority.bg};color:${priority.color};font-size:11px;">${priority.name}</span>
+        </a>
+      `;
+    });
+
+    // === Low Stock Table ===
+    const lowStock = STOCK_ITEMS.filter(s => s.stock <= s.minStock);
+    const tbody = document.querySelector('#lowStockTable tbody');
+    lowStock.forEach(item => {
+      const pct = Math.round((item.stock / item.maxStock) * 100);
+      const color = item.stock < item.minStock ? 'var(--danger)' : 'var(--warning)';
+      tbody.innerHTML += `
+        <tr onclick="location.href='pages/stock.html'">
+          <td>
+            <div style="font-weight:600;font-size:13px;">${item.name}</div>
+            <div style="font-size:12px;color:var(--gray-400);">${item.id}</div>
+          </td>
+          <td><strong>${item.stock}</strong> ${item.unit}</td>
+          <td>${item.minStock} ${item.unit}</td>
+          <td>
+            <div class="stock-level">
+              <div class="stock-bar">
+                <div class="stock-bar-fill" style="width:${pct}%;background:${color};"></div>
+              </div>
+              <span style="font-size:12px;font-weight:600;color:${color};">${pct}%</span>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    // If no low stock
+    if (lowStock.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-state" style="padding:30px;">พัสดุทั้งหมดอยู่ในระดับปกติ</td></tr>';
+    }
+  </script>
+</body>
+</html>

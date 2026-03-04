@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>คลังพัสดุ - โรงพยาบาลสันกำแพง</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">🏥</div>
+      <div class="sidebar-title">โรงพยาบาลสันกำแพง<small>Equipment Management System</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">เมนูหลัก</div>
+        <a href="../index.html" class="nav-item"><i class="fas fa-chart-pie nav-icon"></i> แดชบอร์ด</a>
+        <a href="assets.html" class="nav-item"><i class="fas fa-laptop-medical nav-icon"></i> ทะเบียนทรัพย์สิน</a>
+        <a href="maintenance.html" class="nav-item"><i class="fas fa-tools nav-icon"></i> ระบบซ่อมบำรุง <span class="nav-badge">4</span></a>
+        <a href="stock.html" class="nav-item active"><i class="fas fa-boxes-stacked nav-icon"></i> คลังพัสดุ</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">เครื่องมือ</div>
+        <a href="stock-receive.html" class="nav-item"><i class="fas fa-barcode nav-icon"></i> Scan รับสินค้า</a>
+        <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar nav-icon"></i> รายงาน</a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">👤</div>
+        <div><div class="user-name">Admin IT</div><div class="user-role">ผู้ดูแลระบบ</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="header">
+      <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <div class="page-title-area">
+        <h1>คลังพัสดุ</h1>
+        <div class="breadcrumb"><a href="../index.html"><i class="fas fa-home"></i> หน้าหลัก</a> <i class="fas fa-chevron-right" style="font-size:10px;"></i> คลังพัสดุ</div>
+      </div>
+      <div class="header-actions">
+        <a href="stock-receive.html" class="btn btn-success btn-sm"><i class="fas fa-barcode"></i> Scan รับสินค้า</a>
+        <button class="btn btn-primary btn-sm" onclick="openAddStock()"><i class="fas fa-plus"></i> เพิ่มรายการ</button>
+      </div>
+    </header>
+
+    <div class="page-container fade-in">
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#DBEAFE;color:#3B82F6;"><i class="fas fa-boxes-stacked"></i></div>
+          <div class="stat-info"><h3>15</h3><p>รายการทั้งหมด</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#D1FAE5;color:#10B981;"><i class="fas fa-check-circle"></i></div>
+          <div class="stat-info"><h3 id="normalCount">0</h3><p>ระดับปกติ</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3C7;color:#F59E0B;"><i class="fas fa-exclamation-circle"></i></div>
+          <div class="stat-info"><h3 id="lowCount">0</h3><p>ใกล้ขั้นต่ำ</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEE2E2;color:#EF4444;"><i class="fas fa-triangle-exclamation"></i></div>
+          <div class="stat-info"><h3 id="criticalCount">0</h3><p>ต่ำกว่าขั้นต่ำ</p></div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('inventory', this)">คงคลัง</button>
+        <button class="tab-btn" onclick="switchTab('transactions', this)">ประวัติรับ-จ่าย</button>
+      </div>
+
+      <!-- Inventory Tab -->
+      <div id="inventoryTab">
+        <div class="filter-bar">
+          <div class="search-box" style="flex:1;max-width:360px;">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="ค้นหาพัสดุ..." id="searchStock" oninput="renderInventory()">
+          </div>
+          <select id="filterStockCat" onchange="renderInventory()">
+            <option value="">ทุกหมวดหมู่</option>
+          </select>
+          <select id="filterStockLevel" onchange="renderInventory()">
+            <option value="">ทุกระดับ</option>
+            <option value="low">ใกล้ขั้นต่ำ / ต่ำกว่าขั้นต่ำ</option>
+            <option value="normal">ระดับปกติ</option>
+          </select>
+        </div>
+
+        <div class="card">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>รหัส</th>
+                  <th>รายการ</th>
+                  <th>หมวดหมู่</th>
+                  <th>คงเหลือ</th>
+                  <th>ขั้นต่ำ</th>
+                  <th>สถานะ</th>
+                  <th>ราคา/หน่วย</th>
+                  <th>ตำแหน่ง</th>
+                  <th>รับล่าสุด</th>
+                </tr>
+              </thead>
+              <tbody id="inventoryBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transactions Tab -->
+      <div id="transactionsTab" style="display:none;">
+        <div class="filter-bar">
+          <div class="search-box" style="flex:1;max-width:360px;">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="ค้นหาธุรกรรม..." id="searchTxn" oninput="renderTransactions()">
+          </div>
+          <select id="filterTxnType" onchange="renderTransactions()">
+            <option value="">ทุกประเภท</option>
+            <option value="receive">รับเข้า</option>
+            <option value="issue">เบิกออก</option>
+          </select>
+        </div>
+
+        <div class="card">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>รหัส</th>
+                  <th>วันที่</th>
+                  <th>ประเภท</th>
+                  <th>รายการ</th>
+                  <th>จำนวน</th>
+                  <th>ราคารวม</th>
+                  <th>อ้างอิง</th>
+                  <th>ผู้ดำเนินการ</th>
+                </tr>
+              </thead>
+              <tbody id="transactionBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Add Stock Modal -->
+  <div class="modal-overlay" id="addStockModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2><i class="fas fa-plus-circle" style="color:var(--primary);margin-right:8px;"></i> เพิ่มรายการพัสดุ</h2>
+        <button class="modal-close" onclick="closeAddStock()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>ชื่อรายการ *</label>
+          <input type="text" class="form-control" placeholder="เช่น ตลับหมึก HP 58A">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>หมวดหมู่</label>
+            <select class="form-control">
+              <option>วัสดุสิ้นเปลือง</option>
+              <option>อุปกรณ์เครือข่าย</option>
+              <option>อะไหล่คอมพิวเตอร์</option>
+              <option>อุปกรณ์ต่อพ่วง</option>
+              <option>อะไหล่เครื่องมือแพทย์</option>
+              <option>วัสดุสำนักงาน</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>หน่วยนับ</label>
+            <input type="text" class="form-control" placeholder="เช่น ตลับ, ชิ้น, กล่อง">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>จำนวนเริ่มต้น</label>
+            <input type="number" class="form-control" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>ขั้นต่ำ (Min)</label>
+            <input type="number" class="form-control" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>สูงสุด (Max)</label>
+            <input type="number" class="form-control" placeholder="0">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>ราคาต่อหน่วย (บาท)</label>
+            <input type="number" class="form-control" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label>Barcode</label>
+            <input type="text" class="form-control" placeholder="เลข Barcode">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>ตำแหน่งจัดเก็บ</label>
+          <input type="text" class="form-control" placeholder="เช่น ชั้น A1-01">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAddStock()">ยกเลิก</button>
+        <button class="btn btn-primary" onclick="closeAddStock()"><i class="fas fa-save"></i> บันทึก</button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="bottom-nav-items">
+      <a href="../index.html" class="bottom-nav-item"><i class="fas fa-chart-pie"></i><span>แดชบอร์ด</span></a>
+      <a href="assets.html" class="bottom-nav-item"><i class="fas fa-laptop-medical"></i><span>ทรัพย์สิน</span></a>
+      <a href="maintenance.html" class="bottom-nav-item"><i class="fas fa-tools"></i><span>ซ่อมบำรุง</span></a>
+      <a href="stock.html" class="bottom-nav-item active"><i class="fas fa-boxes-stacked"></i><span>คลังพัสดุ</span></a>
+      <a href="reports.html" class="bottom-nav-item"><i class="fas fa-chart-bar"></i><span>รายงาน</span></a>
+    </div>
+  </nav>
+
+  <script src="../js/data.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('active');
+    }
+
+    // Populate category filter
+    const cats = [...new Set(STOCK_ITEMS.map(s => s.category))];
+    const catFilter = document.getElementById('filterStockCat');
+    cats.forEach(c => { catFilter.innerHTML += `<option value="${c}">${c}</option>`; });
+
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('inventoryTab').style.display = tab === 'inventory' ? 'block' : 'none';
+      document.getElementById('transactionsTab').style.display = tab === 'transactions' ? 'block' : 'none';
+    }
+
+    function renderInventory() {
+      const search = document.getElementById('searchStock').value.toLowerCase();
+      const cat = document.getElementById('filterStockCat').value;
+      const level = document.getElementById('filterStockLevel').value;
+
+      let filtered = STOCK_ITEMS.filter(item => {
+        if (search && !`${item.id} ${item.name} ${item.barcode}`.toLowerCase().includes(search)) return false;
+        if (cat && item.category !== cat) return false;
+        if (level === 'low' && item.stock > item.minStock) return false;
+        if (level === 'normal' && item.stock <= item.minStock) return false;
+        return true;
+      });
+
+      const tbody = document.getElementById('inventoryBody');
+      tbody.innerHTML = '';
+
+      let normalC = 0, lowC = 0, critC = 0;
+      STOCK_ITEMS.forEach(s => {
+        if (s.stock < s.minStock) critC++;
+        else if (s.stock === s.minStock) lowC++;
+        else normalC++;
+      });
+      document.getElementById('normalCount').textContent = normalC;
+      document.getElementById('lowCount').textContent = lowC;
+      document.getElementById('criticalCount').textContent = critC;
+
+      filtered.forEach(item => {
+        const pct = Math.round((item.stock / item.maxStock) * 100);
+        let color, statusText;
+        if (item.stock < item.minStock) {
+          color = 'var(--danger)'; statusText = 'ต่ำกว่าขั้นต่ำ';
+        } else if (item.stock === item.minStock) {
+          color = 'var(--warning)'; statusText = 'ถึงขั้นต่ำ';
+        } else {
+          color = 'var(--success)'; statusText = 'ปกติ';
+        }
+
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${item.id}</strong></td>
+            <td>
+              <div style="font-weight:600;">${item.name}</div>
+              <div style="font-size:11px;color:var(--gray-400);">Barcode: ${item.barcode}</div>
+            </td>
+            <td><span style="font-size:12px;">${item.category}</span></td>
+            <td>
+              <div style="font-weight:700;font-size:16px;color:${color};">${item.stock}</div>
+              <div style="font-size:11px;color:var(--gray-400);">${item.unit}</div>
+            </td>
+            <td>${item.minStock} ${item.unit}</td>
+            <td>
+              <div class="stock-level">
+                <div class="stock-bar" style="width:80px;">
+                  <div class="stock-bar-fill" style="width:${pct}%;background:${color};"></div>
+                </div>
+                <span style="font-size:11px;font-weight:600;color:${color};">${statusText}</span>
+              </div>
+            </td>
+            <td>${formatCurrency(item.price)} ฿</td>
+            <td><span style="font-size:12px;"><i class="fas fa-map-marker-alt" style="color:var(--gray-400);margin-right:4px;"></i>${item.location}</span></td>
+            <td style="font-size:12px;">${formatDate(item.lastReceived)}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderTransactions() {
+      const search = document.getElementById('searchTxn').value.toLowerCase();
+      const type = document.getElementById('filterTxnType').value;
+
+      let filtered = STOCK_TRANSACTIONS.filter(txn => {
+        const item = getStockItemById(txn.itemId);
+        if (search && !`${txn.id} ${item.name} ${txn.reference} ${txn.supplier || ''}`.toLowerCase().includes(search)) return false;
+        if (type && txn.type !== type) return false;
+        return true;
+      });
+
+      const tbody = document.getElementById('transactionBody');
+      tbody.innerHTML = '';
+
+      filtered.forEach(txn => {
+        const item = getStockItemById(txn.itemId);
+        const isReceive = txn.type === 'receive';
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${txn.id}</strong></td>
+            <td>${formatDate(txn.date)}</td>
+            <td>
+              <span class="badge" style="background:${isReceive ? '#D1FAE5' : '#FEE2E2'};color:${isReceive ? 'var(--success)' : 'var(--danger)'};">
+                <i class="fas ${isReceive ? 'fa-arrow-down' : 'fa-arrow-up'}" style="font-size:10px;"></i>
+                ${isReceive ? 'รับเข้า' : 'เบิกออก'}
+              </span>
+            </td>
+            <td>
+              <div style="font-weight:600;">${item ? item.name : '-'}</div>
+              <div style="font-size:11px;color:var(--gray-400);">${txn.itemId}</div>
+            </td>
+            <td style="font-weight:600;color:${isReceive ? 'var(--success)' : 'var(--danger)'};">
+              ${isReceive ? '+' : '-'}${txn.quantity} ${item ? item.unit : ''}
+            </td>
+            <td>${formatCurrency(txn.totalPrice)} ฿</td>
+            <td>
+              <div style="font-size:12px;">${txn.reference}</div>
+              ${txn.supplier ? `<div style="font-size:11px;color:var(--gray-400);">${txn.supplier}</div>` : ''}
+            </td>
+            <td style="font-size:12px;">${txn.receivedBy}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function openAddStock() { document.getElementById('addStockModal').classList.add('active'); }
+    function closeAddStock() { document.getElementById('addStockModal').classList.remove('active'); }
+
+    renderInventory();
+    renderTransactions();
+  </script>
+</body>
+</html>

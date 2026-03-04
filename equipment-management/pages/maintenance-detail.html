@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>รายละเอียดใบงาน - โรงพยาบาลสันกำแพง</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">🏥</div>
+      <div class="sidebar-title">โรงพยาบาลสันกำแพง<small>Equipment Management System</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">เมนูหลัก</div>
+        <a href="../index.html" class="nav-item"><i class="fas fa-chart-pie nav-icon"></i> แดชบอร์ด</a>
+        <a href="assets.html" class="nav-item"><i class="fas fa-laptop-medical nav-icon"></i> ทะเบียนทรัพย์สิน</a>
+        <a href="maintenance.html" class="nav-item active"><i class="fas fa-tools nav-icon"></i> ระบบซ่อมบำรุง <span class="nav-badge">4</span></a>
+        <a href="stock.html" class="nav-item"><i class="fas fa-boxes-stacked nav-icon"></i> คลังพัสดุ</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">เครื่องมือ</div>
+        <a href="stock-receive.html" class="nav-item"><i class="fas fa-barcode nav-icon"></i> Scan รับสินค้า</a>
+        <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar nav-icon"></i> รายงาน</a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">👤</div>
+        <div><div class="user-name">Admin IT</div><div class="user-role">ผู้ดูแลระบบ</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="header">
+      <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <div class="page-title-area">
+        <h1 id="pageTitle">รายละเอียดใบงาน</h1>
+        <div class="breadcrumb">
+          <a href="../index.html"><i class="fas fa-home"></i> หน้าหลัก</a>
+          <i class="fas fa-chevron-right" style="font-size:10px;"></i>
+          <a href="maintenance.html">ระบบซ่อมบำรุง</a>
+          <i class="fas fa-chevron-right" style="font-size:10px;"></i>
+          <span id="breadcrumbId">-</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="window.print()"><i class="fas fa-print"></i></button>
+      </div>
+    </header>
+
+    <div class="page-container fade-in" id="detailContent"></div>
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="bottom-nav-items">
+      <a href="../index.html" class="bottom-nav-item"><i class="fas fa-chart-pie"></i><span>แดชบอร์ด</span></a>
+      <a href="assets.html" class="bottom-nav-item"><i class="fas fa-laptop-medical"></i><span>ทรัพย์สิน</span></a>
+      <a href="maintenance.html" class="bottom-nav-item active"><i class="fas fa-tools"></i><span>ซ่อมบำรุง</span></a>
+      <a href="stock.html" class="bottom-nav-item"><i class="fas fa-boxes-stacked"></i><span>คลังพัสดุ</span></a>
+      <a href="reports.html" class="bottom-nav-item"><i class="fas fa-chart-bar"></i><span>รายงาน</span></a>
+    </div>
+  </nav>
+
+  <script src="../js/data.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('active');
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const woId = params.get('id') || 'WO-2026-001';
+    const wo = WORK_ORDERS.find(w => w.id === woId);
+
+    if (!wo) {
+      document.getElementById('detailContent').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>ไม่พบใบงาน</h3><a href="maintenance.html" class="btn btn-primary" style="margin-top:16px;">กลับหน้าซ่อมบำรุง</a></div>';
+    } else {
+      const status = getMaintenanceStatusById(wo.status);
+      const priority = getPriorityInfo(wo.priority);
+      const asset = getAssetById(wo.assetId);
+      const tech = getTechnicianById(wo.assignedTo);
+      const approver = getTechnicianById(wo.approvedBy);
+      const cat = asset ? getCategoryById(asset.category) : null;
+      const dept = asset ? getDepartmentById(asset.department) : null;
+
+      document.getElementById('pageTitle').textContent = wo.id;
+      document.getElementById('breadcrumbId').textContent = wo.id;
+
+      // Workflow steps
+      const steps = [
+        { key: 'pending', label: 'แจ้งซ่อม', icon: 'fa-paper-plane' },
+        { key: 'approved', label: 'อนุมัติ', icon: 'fa-check-circle' },
+        { key: 'in_progress', label: 'ดำเนินการ', icon: 'fa-wrench' },
+        { key: 'completed', label: 'เสร็จสิ้น', icon: 'fa-check-double' },
+      ];
+      const statusOrder = { pending: 0, approved: 1, in_progress: 2, waiting_parts: 2, completed: 3, rejected: -1 };
+      const currentStep = statusOrder[wo.status];
+
+      const workflowHTML = steps.map((step, i) => {
+        const isCompleted = i < currentStep;
+        const isCurrent = i === currentStep;
+        const color = isCompleted ? 'var(--success)' : isCurrent ? 'var(--primary)' : 'var(--gray-300)';
+        const bg = isCompleted ? '#D1FAE5' : isCurrent ? '#DBEAFE' : 'var(--gray-100)';
+        return `
+          <div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;">
+            <div style="width:40px;height:40px;border-radius:50%;background:${bg};color:${color};display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid ${color};z-index:1;">
+              <i class="fas ${isCompleted ? 'fa-check' : step.icon}"></i>
+            </div>
+            <span style="font-size:11px;font-weight:600;margin-top:6px;color:${isCurrent ? 'var(--primary)' : isCompleted ? 'var(--success)' : 'var(--gray-400)'};">${step.label}</span>
+          </div>
+          ${i < steps.length - 1 ? `<div style="flex:1;height:2px;background:${isCompleted ? 'var(--success)' : 'var(--gray-200)'};margin-top:20px;"></div>` : ''}
+        `;
+      }).join('');
+
+      // Approval section
+      let approvalHTML = '';
+      if (wo.status === 'pending') {
+        approvalHTML = `
+          <div class="approval-card" style="margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div style="width:48px;height:48px;border-radius:12px;background:rgba(245,158,11,0.2);color:#F59E0B;display:flex;align-items:center;justify-content:center;font-size:22px;">
+                <i class="fas fa-user-shield"></i>
+              </div>
+              <div>
+                <h3 style="font-size:16px;font-weight:700;">รออนุมัติจากหัวหน้าช่าง</h3>
+                <p style="font-size:13px;color:var(--gray-600);">ใบงานนี้กำลังรอการอนุมัติเพื่อเริ่มดำเนินการซ่อม</p>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>ความเห็นผู้อนุมัติ</label>
+              <textarea class="form-control" placeholder="ระบุความเห็น (ถ้ามี)..." rows="2"></textarea>
+            </div>
+            <div class="approval-actions">
+              <button class="btn btn-success btn-lg" style="flex:1;" onclick="alert('อนุมัติเรียบร้อย! (Demo)')"><i class="fas fa-check-circle"></i> อนุมัติ</button>
+              <button class="btn btn-danger btn-lg" style="flex:1;" onclick="alert('ไม่อนุมัติ (Demo)')"><i class="fas fa-times-circle"></i> ไม่อนุมัติ</button>
+            </div>
+          </div>
+        `;
+      } else if (wo.status === 'approved') {
+        approvalHTML = `
+          <div class="approval-card approved" style="margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:48px;height:48px;border-radius:12px;background:rgba(16,185,129,0.2);color:#10B981;display:flex;align-items:center;justify-content:center;font-size:22px;">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div>
+                <h3 style="font-size:16px;font-weight:700;">อนุมัติแล้ว</h3>
+                <p style="font-size:13px;color:var(--gray-600);">อนุมัติโดย ${approver ? approver.name : '-'} เมื่อ ${formatDate(wo.approvedDate)}</p>
+              </div>
+            </div>
+            <div style="margin-top:12px;">
+              <button class="btn btn-primary btn-lg" style="width:100%;" onclick="alert('เริ่มดำเนินการซ่อมแล้ว! (Demo)')"><i class="fas fa-play-circle"></i> เริ่มดำเนินการ</button>
+            </div>
+          </div>
+        `;
+      } else if (wo.status === 'in_progress' || wo.status === 'waiting_parts') {
+        approvalHTML = `
+          <div style="background:var(--primary-light);border-radius:16px;padding:20px;border:1px solid rgba(14,165,233,0.2);margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+              <div style="width:48px;height:48px;border-radius:12px;background:rgba(14,165,233,0.2);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:22px;">
+                <i class="fas fa-wrench"></i>
+              </div>
+              <div>
+                <h3 style="font-size:16px;font-weight:700;">${status.name}</h3>
+                <p style="font-size:13px;color:var(--gray-600);">ดำเนินการโดย ${tech ? tech.name : '-'}</p>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>อัปเดตสถานะ</label>
+              <textarea class="form-control" placeholder="บันทึกความคืบหน้า..." rows="2"></textarea>
+            </div>
+            <div style="display:flex;gap:12px;">
+              <button class="btn btn-success" style="flex:1;" onclick="alert('บันทึกงานเสร็จสิ้น! (Demo)')"><i class="fas fa-check-double"></i> งานเสร็จสิ้น</button>
+              <button class="btn btn-warning" style="flex:1;" onclick="alert('อัปเดตสถานะแล้ว! (Demo)')"><i class="fas fa-save"></i> บันทึกความคืบหน้า</button>
+            </div>
+          </div>
+        `;
+      }
+
+      document.getElementById('detailContent').innerHTML = `
+        <!-- Workflow Progress -->
+        <div class="card" style="margin-bottom:24px;">
+          <div class="card-body" style="padding:24px;">
+            <div style="display:flex;align-items:flex-start;">
+              ${workflowHTML}
+            </div>
+          </div>
+        </div>
+
+        <!-- Title Section -->
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:24px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:280px;">
+            <h1 style="font-size:22px;font-weight:800;margin-bottom:8px;">${wo.title}</h1>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <span class="badge" style="background:${status.bg};color:${status.color};font-size:13px;padding:6px 14px;"><i class="fas ${status.icon}" style="margin-right:4px;"></i> ${status.name}</span>
+              <span class="badge" style="background:${priority.bg};color:${priority.color};font-size:13px;padding:6px 14px;"><i class="fas ${priority.icon}" style="margin-right:4px;"></i> ความสำคัญ: ${priority.name}</span>
+              <span class="badge" style="background:var(--gray-100);color:var(--gray-600);font-size:13px;padding:6px 14px;"><i class="fas fa-tag" style="margin-right:4px;"></i> ${wo.type === 'corrective' ? 'แก้ไข' : 'ป้องกัน'}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Approval / Action -->
+        ${approvalHTML}
+
+        <div class="grid-2">
+          <!-- Left Column -->
+          <div>
+            <!-- Details -->
+            <div class="card" style="margin-bottom:20px;">
+              <div class="card-header"><h2><i class="fas fa-file-alt" style="color:var(--primary);margin-right:8px;"></i> รายละเอียด</h2></div>
+              <div class="card-body">
+                <p style="font-size:14px;line-height:1.8;color:var(--gray-600);margin-bottom:16px;">${wo.description}</p>
+                ${wo.notes ? `<div style="background:var(--gray-50);border-radius:10px;padding:14px;"><strong style="font-size:12px;color:var(--gray-500);display:block;margin-bottom:4px;">บันทึกเพิ่มเติม:</strong><p style="font-size:14px;color:var(--gray-700);">${wo.notes}</p></div>` : ''}
+              </div>
+            </div>
+
+            <!-- Info -->
+            <div class="card" style="margin-bottom:20px;">
+              <div class="card-header"><h2><i class="fas fa-info-circle" style="color:var(--info);margin-right:8px;"></i> ข้อมูลใบงาน</h2></div>
+              <div class="card-body">
+                <div class="info-grid">
+                  <div class="info-item"><label>เลขที่ใบงาน</label><span>${wo.id}</span></div>
+                  <div class="info-item"><label>แจ้งโดย</label><span>${wo.reportedBy}</span></div>
+                  <div class="info-item"><label>วันที่แจ้ง</label><span>${formatDate(wo.reportedDate)}</span></div>
+                  <div class="info-item"><label>ช่างรับผิดชอบ</label><span>${tech ? `${tech.avatar} ${tech.name}` : '-'}</span></div>
+                  <div class="info-item"><label>ผู้อนุมัติ</label><span>${approver ? `${approver.avatar} ${approver.name}` : 'รออนุมัติ'}</span></div>
+                  <div class="info-item"><label>วันที่อนุมัติ</label><span>${formatDate(wo.approvedDate)}</span></div>
+                  <div class="info-item"><label>งบประมาณ</label><span>${wo.estimatedCost ? formatCurrency(wo.estimatedCost) + ' บาท' : '-'}</span></div>
+                  <div class="info-item"><label>ค่าใช้จ่ายจริง</label><span>${wo.actualCost ? formatCurrency(wo.actualCost) + ' บาท' : 'ยังไม่ระบุ'}</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Asset Info -->
+            ${asset ? `
+            <div class="card">
+              <div class="card-header">
+                <h2><i class="fas fa-laptop-medical" style="color:${cat.color};margin-right:8px;"></i> อุปกรณ์ที่เกี่ยวข้อง</h2>
+                <a href="asset-detail.html?id=${asset.id}" class="btn btn-sm btn-secondary"><i class="fas fa-external-link-alt"></i> ดูรายละเอียด</a>
+              </div>
+              <div class="card-body">
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+                  <div style="width:56px;height:56px;border-radius:14px;background:${cat.color}15;color:${cat.color};display:flex;align-items:center;justify-content:center;font-size:24px;">
+                    <i class="fas ${cat.icon}"></i>
+                  </div>
+                  <div>
+                    <h3 style="font-size:16px;font-weight:700;">${asset.name}</h3>
+                    <p style="font-size:13px;color:var(--gray-500);">${asset.id} · ${dept.name} · ${asset.location}</p>
+                  </div>
+                </div>
+                <div class="info-grid" style="grid-template-columns:1fr 1fr 1fr;">
+                  <div class="info-item"><label>ยี่ห้อ/รุ่น</label><span>${asset.brand} ${asset.model}</span></div>
+                  <div class="info-item"><label>Serial</label><span style="font-size:12px;">${asset.serial}</span></div>
+                  <div class="info-item"><label>ราคา</label><span>${formatCurrency(asset.price)} ฿</span></div>
+                </div>
+              </div>
+            </div>
+            ` : ''}
+          </div>
+
+          <!-- Right Column: Timeline -->
+          <div>
+            <div class="card">
+              <div class="card-header"><h2><i class="fas fa-history" style="color:var(--secondary);margin-right:8px;"></i> ไทม์ไลน์</h2></div>
+              <div class="card-body">
+                <div class="timeline">
+                  ${wo.timeline.slice().reverse().map((t, i) => `
+                    <div class="timeline-item">
+                      <div class="timeline-dot" style="${i === 0 ? 'background:var(--primary);border-color:var(--primary);' : ''}"></div>
+                      <div class="timeline-content">
+                        <h4>${t.action}</h4>
+                        <p>${t.detail}</p>
+                        <div class="timeline-meta">
+                          <i class="fas fa-user" style="margin-right:4px;"></i> ${t.by} · <i class="fas fa-clock" style="margin:0 4px;"></i> ${t.date}
+                        </div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+
+            <!-- Add Note -->
+            <div class="card" style="margin-top:20px;">
+              <div class="card-header"><h2><i class="fas fa-comment-dots" style="color:var(--warning);margin-right:8px;"></i> เพิ่มบันทึก</h2></div>
+              <div class="card-body">
+                <textarea class="form-control" placeholder="พิมพ์บันทึกหรือความคืบหน้า..." rows="3"></textarea>
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                  <button class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> ส่งบันทึก</button>
+                  <button class="btn btn-secondary btn-sm"><i class="fas fa-camera"></i> แนบรูป</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

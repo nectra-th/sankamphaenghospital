@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>รายงาน - โรงพยาบาลสันกำแพง</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">🏥</div>
+      <div class="sidebar-title">โรงพยาบาลสันกำแพง<small>Equipment Management System</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">เมนูหลัก</div>
+        <a href="../index.html" class="nav-item"><i class="fas fa-chart-pie nav-icon"></i> แดชบอร์ด</a>
+        <a href="assets.html" class="nav-item"><i class="fas fa-laptop-medical nav-icon"></i> ทะเบียนทรัพย์สิน</a>
+        <a href="maintenance.html" class="nav-item"><i class="fas fa-tools nav-icon"></i> ระบบซ่อมบำรุง <span class="nav-badge">4</span></a>
+        <a href="stock.html" class="nav-item"><i class="fas fa-boxes-stacked nav-icon"></i> คลังพัสดุ</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">เครื่องมือ</div>
+        <a href="stock-receive.html" class="nav-item"><i class="fas fa-barcode nav-icon"></i> Scan รับสินค้า</a>
+        <a href="reports.html" class="nav-item active"><i class="fas fa-chart-bar nav-icon"></i> รายงาน</a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">👤</div>
+        <div><div class="user-name">Admin IT</div><div class="user-role">ผู้ดูแลระบบ</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="header">
+      <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <div class="page-title-area">
+        <h1>รายงาน</h1>
+        <div class="breadcrumb"><a href="../index.html"><i class="fas fa-home"></i> หน้าหลัก</a> <i class="fas fa-chevron-right" style="font-size:10px;"></i> รายงาน</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-sm"><i class="fas fa-download"></i> ส่งออก Excel</button>
+        <button class="btn btn-secondary btn-sm" onclick="window.print()"><i class="fas fa-print"></i> พิมพ์</button>
+      </div>
+    </header>
+
+    <div class="page-container fade-in">
+      <!-- Summary Cards -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#DBEAFE;color:#3B82F6;"><i class="fas fa-laptop-medical"></i></div>
+          <div class="stat-info"><h3>20</h3><p>ทรัพย์สินทั้งหมด</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#EDE9FE;color:#8B5CF6;"><i class="fas fa-coins"></i></div>
+          <div class="stat-info"><h3 id="totalAssetValue">0</h3><p>มูลค่ารวม (บาท)</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3C7;color:#F59E0B;"><i class="fas fa-tools"></i></div>
+          <div class="stat-info"><h3>7</h3><p>งานซ่อมทั้งหมด</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#D1FAE5;color:#10B981;"><i class="fas fa-boxes-stacked"></i></div>
+          <div class="stat-info"><h3>15</h3><p>รายการพัสดุ</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FCE7F3;color:#EC4899;"><i class="fas fa-receipt"></i></div>
+          <div class="stat-info"><h3 id="totalMaintCost">0</h3><p>ค่าซ่อม (บาท)</p></div>
+        </div>
+      </div>
+
+      <!-- Charts Row 1 -->
+      <div class="grid-2" style="margin-bottom:24px;">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-chart-line" style="color:var(--primary);margin-right:8px;"></i> ค่าซ่อมบำรุงรายเดือน</h2>
+          </div>
+          <div class="card-body">
+            <div class="chart-container"><canvas id="monthlyCostChart"></canvas></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-chart-pie" style="color:var(--secondary);margin-right:8px;"></i> สัดส่วนมูลค่าทรัพย์สินตามประเภท</h2>
+          </div>
+          <div class="card-body">
+            <div class="chart-container"><canvas id="assetValueChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row 2 -->
+      <div class="grid-2" style="margin-bottom:24px;">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-chart-bar" style="color:var(--success);margin-right:8px;"></i> จำนวนงานซ่อมตามประเภท</h2>
+          </div>
+          <div class="card-body">
+            <div class="chart-container"><canvas id="woTypeChart"></canvas></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-chart-area" style="color:var(--warning);margin-right:8px;"></i> มูลค่าสต็อกคงคลัง</h2>
+          </div>
+          <div class="card-body">
+            <div class="chart-container"><canvas id="stockValueChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Maintenance Assets -->
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-header">
+          <h2><i class="fas fa-ranking-star" style="color:var(--danger);margin-right:8px;"></i> อุปกรณ์ที่มีค่าซ่อมสูงสุด</h2>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>อันดับ</th>
+                  <th>อุปกรณ์</th>
+                  <th>แผนก</th>
+                  <th>จำนวนงานซ่อม</th>
+                  <th>งบประมาณรวม</th>
+                  <th>สถานะ</th>
+                </tr>
+              </thead>
+              <tbody id="topMaintenanceBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Warranty Expiry -->
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-shield-halved" style="color:var(--info);margin-right:8px;"></i> อุปกรณ์ใกล้หมดประกัน / หมดประกันแล้ว</h2>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>รหัส</th>
+                  <th>อุปกรณ์</th>
+                  <th>แผนก</th>
+                  <th>สิ้นสุดประกัน</th>
+                  <th>สถานะ</th>
+                </tr>
+              </thead>
+              <tbody id="warrantyBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="bottom-nav-items">
+      <a href="../index.html" class="bottom-nav-item"><i class="fas fa-chart-pie"></i><span>แดชบอร์ด</span></a>
+      <a href="assets.html" class="bottom-nav-item"><i class="fas fa-laptop-medical"></i><span>ทรัพย์สิน</span></a>
+      <a href="maintenance.html" class="bottom-nav-item"><i class="fas fa-tools"></i><span>ซ่อมบำรุง</span></a>
+      <a href="stock.html" class="bottom-nav-item"><i class="fas fa-boxes-stacked"></i><span>คลังพัสดุ</span></a>
+      <a href="reports.html" class="bottom-nav-item active"><i class="fas fa-chart-bar"></i><span>รายงาน</span></a>
+    </div>
+  </nav>
+
+  <script src="../js/data.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('active');
+    }
+
+    // Total asset value
+    const totalValue = ASSETS.reduce((sum, a) => sum + a.price, 0);
+    document.getElementById('totalAssetValue').textContent = formatCurrency(totalValue);
+
+    // Total maintenance cost
+    const totalMaint = WORK_ORDERS.reduce((sum, wo) => sum + (wo.actualCost || wo.estimatedCost || 0), 0);
+    document.getElementById('totalMaintCost').textContent = formatCurrency(totalMaint);
+
+    // Monthly Cost Chart
+    new Chart(document.getElementById('monthlyCostChart'), {
+      type: 'line',
+      data: {
+        labels: ['ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.', 'ม.ค.', 'ก.พ.', 'มี.ค.'],
+        datasets: [{
+          label: 'ค่าซ่อมบำรุง (บาท)',
+          data: [12000, 8500, 15000, 22000, 9500, 35250, 8500],
+          borderColor: '#0EA5E9',
+          backgroundColor: 'rgba(14,165,233,0.1)',
+          tension: 0.4,
+          fill: true,
+          borderWidth: 3,
+          pointRadius: 5,
+          pointBackgroundColor: '#0EA5E9',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { font: { family: "'Noto Sans Thai'" }, callback: v => formatCurrency(v) }, grid: { color: '#F1F5F9' } },
+          x: { ticks: { font: { family: "'Noto Sans Thai'" } }, grid: { display: false } }
+        }
+      }
+    });
+
+    // Asset Value by Category
+    const catValues = {};
+    ASSETS.forEach(a => {
+      const cat = getCategoryById(a.category);
+      catValues[cat.name] = (catValues[cat.name] || 0) + a.price;
+    });
+    const sortedCats = Object.entries(catValues).sort((a, b) => b[1] - a[1]);
+
+    new Chart(document.getElementById('assetValueChart'), {
+      type: 'doughnut',
+      data: {
+        labels: sortedCats.map(([k]) => k),
+        datasets: [{
+          data: sortedCats.map(([,v]) => v),
+          backgroundColor: ['#3B82F6','#8B5CF6','#EF4444','#F59E0B','#10B981','#EC4899','#14B8A6','#6366F1','#F97316','#06B6D4','#78716C'],
+          borderWidth: 0,
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { font: { family: "'Noto Sans Thai'", size: 11 }, padding: 10, usePointStyle: true } },
+          tooltip: { callbacks: { label: ctx => `${ctx.label}: ${formatCurrency(ctx.parsed)} บาท` } }
+        },
+        cutout: '60%',
+      }
+    });
+
+    // WO Type Chart
+    const corrective = WORK_ORDERS.filter(wo => wo.type === 'corrective').length;
+    const preventive = WORK_ORDERS.filter(wo => wo.type === 'preventive').length;
+
+    new Chart(document.getElementById('woTypeChart'), {
+      type: 'bar',
+      data: {
+        labels: ['แก้ไข (Corrective)', 'ป้องกัน (Preventive)'],
+        datasets: [
+          {
+            label: 'วิกฤต',
+            data: [WORK_ORDERS.filter(wo => wo.type === 'corrective' && wo.priority === 'critical').length, WORK_ORDERS.filter(wo => wo.type === 'preventive' && wo.priority === 'critical').length],
+            backgroundColor: '#EF4444',
+            borderRadius: 4,
+          },
+          {
+            label: 'สูง',
+            data: [WORK_ORDERS.filter(wo => wo.type === 'corrective' && wo.priority === 'high').length, WORK_ORDERS.filter(wo => wo.type === 'preventive' && wo.priority === 'high').length],
+            backgroundColor: '#F59E0B',
+            borderRadius: 4,
+          },
+          {
+            label: 'ปานกลาง',
+            data: [WORK_ORDERS.filter(wo => wo.type === 'corrective' && wo.priority === 'medium').length, WORK_ORDERS.filter(wo => wo.type === 'preventive' && wo.priority === 'medium').length],
+            backgroundColor: '#3B82F6',
+            borderRadius: 4,
+          },
+          {
+            label: 'ต่ำ',
+            data: [WORK_ORDERS.filter(wo => wo.type === 'corrective' && wo.priority === 'low').length, WORK_ORDERS.filter(wo => wo.type === 'preventive' && wo.priority === 'low').length],
+            backgroundColor: '#10B981',
+            borderRadius: 4,
+          },
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { font: { family: "'Noto Sans Thai'", size: 12 }, usePointStyle: true } } },
+        scales: {
+          y: { beginAtZero: true, stacked: true, ticks: { stepSize: 1, font: { family: "'Noto Sans Thai'" } }, grid: { color: '#F1F5F9' } },
+          x: { stacked: true, ticks: { font: { family: "'Noto Sans Thai'" } }, grid: { display: false } }
+        }
+      }
+    });
+
+    // Stock Value Chart
+    const stockCategories = {};
+    STOCK_ITEMS.forEach(s => {
+      stockCategories[s.category] = (stockCategories[s.category] || 0) + (s.stock * s.price);
+    });
+
+    new Chart(document.getElementById('stockValueChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(stockCategories),
+        datasets: [{
+          label: 'มูลค่า (บาท)',
+          data: Object.values(stockCategories),
+          backgroundColor: ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#EF4444','#06B6D4'],
+          borderRadius: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { font: { family: "'Noto Sans Thai'" }, callback: v => formatCurrency(v) }, grid: { color: '#F1F5F9' } },
+          x: { ticks: { font: { family: "'Noto Sans Thai'", size: 11 } }, grid: { display: false } }
+        }
+      }
+    });
+
+    // Top Maintenance Table
+    const assetWOCount = {};
+    WORK_ORDERS.forEach(wo => {
+      if (!assetWOCount[wo.assetId]) assetWOCount[wo.assetId] = { count: 0, cost: 0 };
+      assetWOCount[wo.assetId].count++;
+      assetWOCount[wo.assetId].cost += (wo.actualCost || wo.estimatedCost || 0);
+    });
+    const sortedAssets = Object.entries(assetWOCount).sort((a, b) => b[1].cost - a[1].cost);
+
+    const topBody = document.getElementById('topMaintenanceBody');
+    sortedAssets.forEach(([assetId, data], i) => {
+      const asset = getAssetById(assetId);
+      if (!asset) return;
+      const dept = getDepartmentById(asset.department);
+      const status = getStatusById(asset.status);
+      topBody.innerHTML += `
+        <tr onclick="location.href='asset-detail.html?id=${asset.id}'">
+          <td><span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:${i < 3 ? '#FEF3C7' : 'var(--gray-100)'};color:${i < 3 ? '#F59E0B' : 'var(--gray-500)'};font-weight:700;font-size:13px;">${i + 1}</span></td>
+          <td>
+            <div style="font-weight:600;">${asset.name}</div>
+            <div style="font-size:11px;color:var(--gray-400);">${asset.id}</div>
+          </td>
+          <td>${dept.name}</td>
+          <td style="text-align:center;font-weight:600;">${data.count}</td>
+          <td style="font-weight:700;color:var(--primary);">${formatCurrency(data.cost)} ฿</td>
+          <td><span class="badge" style="background:${status.bg};color:${status.color};"><span class="badge-dot" style="background:${status.color};"></span>${status.name}</span></td>
+        </tr>
+      `;
+    });
+
+    // Warranty Table
+    const now = new Date();
+    const sixMonths = new Date();
+    sixMonths.setMonth(sixMonths.getMonth() + 6);
+
+    const warrantyAssets = ASSETS.filter(a => a.warrantyEnd).sort((a, b) => new Date(a.warrantyEnd) - new Date(b.warrantyEnd));
+    const warrantyBody = document.getElementById('warrantyBody');
+
+    warrantyAssets.forEach(asset => {
+      const endDate = new Date(asset.warrantyEnd);
+      const dept = getDepartmentById(asset.department);
+      let warStatus, warColor, warBg;
+
+      if (endDate < now) {
+        warStatus = 'หมดประกันแล้ว'; warColor = '#EF4444'; warBg = '#FEE2E2';
+      } else if (endDate < sixMonths) {
+        warStatus = 'ใกล้หมดประกัน'; warColor = '#F59E0B'; warBg = '#FEF3C7';
+      } else {
+        warStatus = 'มีประกัน'; warColor = '#10B981'; warBg = '#D1FAE5';
+      }
+
+      warrantyBody.innerHTML += `
+        <tr onclick="location.href='asset-detail.html?id=${asset.id}'">
+          <td><strong>${asset.id}</strong></td>
+          <td>
+            <div style="font-weight:600;">${asset.name}</div>
+            <div style="font-size:11px;color:var(--gray-400);">${asset.brand} ${asset.model}</div>
+          </td>
+          <td>${dept.name}</td>
+          <td>${formatDate(asset.warrantyEnd)}</td>
+          <td><span class="badge" style="background:${warBg};color:${warColor};">${warStatus}</span></td>
+        </tr>
+      `;
+    });
+  </script>
+</body>
+</html>
