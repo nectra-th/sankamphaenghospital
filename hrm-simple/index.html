@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HRM โรงพยาบาลสันกำแพง - เวอร์ชันง่าย</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- ===== LOGIN: Step 1 - Phone ===== -->
+    <div id="login-phone" class="page login-page">
+        <div class="login-box">
+            <div class="login-logo">
+                <i class="fas fa-hospital"></i>
+            </div>
+            <h1>โรงพยาบาลสันกำแพง</h1>
+            <p class="login-sub">ระบบดูข้อมูลเงินเดือน</p>
+
+            <div class="login-form">
+                <label class="field-label">กรอกเบอร์โทรศัพท์</label>
+                <div class="phone-input-group">
+                    <span class="phone-prefix">
+                        <i class="fas fa-phone"></i> +66
+                    </span>
+                    <input type="tel" id="phone-input" class="big-input" placeholder="81-234-5678" maxlength="12" value="81-234-5678">
+                </div>
+                <button class="big-btn" onclick="app.sendOTP()">
+                    <i class="fas fa-paper-plane"></i> ขอรหัส OTP
+                </button>
+            </div>
+
+            <div class="login-hint">
+                <i class="fas fa-info-circle"></i> Demo: กดปุ่มได้เลย ไม่ต้องกรอกข้อมูลจริง
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== LOGIN: Step 2 - OTP ===== -->
+    <div id="login-otp" class="page login-page hidden">
+        <div class="login-box">
+            <div class="login-logo small">
+                <i class="fas fa-shield-halved"></i>
+            </div>
+            <h2>ใส่รหัส OTP</h2>
+            <p class="login-sub">ส่งรหัสไปที่เบอร์ <strong id="otp-phone-display">081-234-5678</strong></p>
+
+            <div class="otp-inputs">
+                <input type="tel" maxlength="1" class="otp-box" value="1" data-index="0">
+                <input type="tel" maxlength="1" class="otp-box" value="2" data-index="1">
+                <input type="tel" maxlength="1" class="otp-box" value="3" data-index="2">
+                <input type="tel" maxlength="1" class="otp-box" value="4" data-index="3">
+                <input type="tel" maxlength="1" class="otp-box" value="5" data-index="4">
+                <input type="tel" maxlength="1" class="otp-box" value="6" data-index="5">
+            </div>
+
+            <button class="big-btn" onclick="app.verifyOTP()">
+                <i class="fas fa-check-circle"></i> ยืนยัน
+            </button>
+
+            <div class="otp-actions">
+                <button class="text-btn" onclick="app.sendOTP()">
+                    <i class="fas fa-redo"></i> ส่งรหัสใหม่
+                </button>
+                <button class="text-btn" onclick="app.backToPhone()">
+                    <i class="fas fa-arrow-left"></i> เปลี่ยนเบอร์
+                </button>
+            </div>
+
+            <div class="login-hint">
+                <i class="fas fa-info-circle"></i> Demo: กด "ยืนยัน" ได้เลย
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MAIN APP ===== -->
+    <div id="app" class="hidden">
+
+        <!-- Top Bar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <i class="fas fa-hospital topbar-icon"></i>
+                <span id="topbar-title">หน้าหลัก</span>
+            </div>
+            <div class="topbar-right">
+                <button class="topbar-btn" id="notif-btn" onclick="app.goTo('announcements')">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-dot"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Page Container -->
+        <div id="page-container" class="page-container">
+            <!-- Dynamic content -->
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-tab active" data-page="home" onclick="app.goTo('home')">
+                <i class="fas fa-home"></i>
+                <span>หน้าหลัก</span>
+            </button>
+            <button class="nav-tab" data-page="payslip" onclick="app.goTo('payslip')">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>สลิปเงินเดือน</span>
+            </button>
+            <button class="nav-tab" data-page="leave" onclick="app.goTo('leave')">
+                <i class="fas fa-calendar-minus"></i>
+                <span>วันลา</span>
+            </button>
+            <button class="nav-tab" data-page="profile" onclick="app.goTo('profile')">
+                <i class="fas fa-user"></i>
+                <span>ข้อมูลฉัน</span>
+            </button>
+        </nav>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
